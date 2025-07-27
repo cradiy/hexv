@@ -8,7 +8,7 @@ use ratatui::{
     Frame, Terminal,
     backend::{Backend, CrosstermBackend},
     layout::{Constraint, Direction, Layout},
-    style::{Modifier, Style},
+    style::{Color, Modifier, Style},
     text::{Line, Span, Text},
     widgets::{Block, Borders, Paragraph},
 };
@@ -310,12 +310,20 @@ fn ui(frame: &mut Frame, app: &mut App) {
         .split(size);
 
     // Header Block
-    let header_block = Block::default().borders(Borders::ALL).title(format!(
-        "{} - Hex Viewer - {} (Size: {} bytes)",
-        env!("CARGO_PKG_NAME"),
-        app.file_path.display(),
-        app.file_size
-    ));
+    let header_block = Block::default()
+        .borders(Borders::ALL)
+        .border_style(Style::default().fg(Color::LightBlue))
+        .title(Span::styled(
+            format!(
+                "{} - Hex Viewer - {} (Size: {} bytes)",
+                env!("CARGO_PKG_NAME"),
+                app.file_path.display(),
+                app.file_size
+            ),
+            Style::default()
+                .fg(Color::Yellow)
+                .add_modifier(Modifier::BOLD),
+        ));
     frame.render_widget(header_block, chunks[0]);
 
     // Read current chunk into buffer based on available height
@@ -332,25 +340,36 @@ fn ui(frame: &mut Frame, app: &mut App) {
         let line_end = (i + app.bytes_per_line).min(app.last_bytes_read);
         let chunk = &app.buffer[i..line_end];
 
-        let mut hex_spans: Vec<Span> = vec![Span::raw(format!("{:08X}: ", line_offset))];
+        let mut hex_spans: Vec<Span> = vec![Span::styled(
+            format!("{:08X}: ", line_offset),
+            Style::default().fg(Color::Cyan),
+        )];
         let mut ascii_spans: Vec<Span> = Vec::new();
 
         // Hex part
         (0..app.bytes_per_line).for_each(|j| {
             if i + j < app.last_bytes_read {
-                hex_spans.push(Span::styled(format!("{:02X} ", chunk[j]), Style::default()));
+                hex_spans.push(Span::styled(
+                    format!("{:02X} ", chunk[j]),
+                    Style::default().fg(Color::LightGreen),
+                ));
             } else {
-                hex_spans.push(Span::raw("   ")); // Padding
+                hex_spans.push(Span::raw("   ")); // Padding for incomplete lines
             }
         });
 
         // ASCII part
         for b in chunk {
             if *b >= 32 && *b <= 126 {
-                // Fixed duplicate condition
-                ascii_spans.push(Span::raw(format!("{}", *b as char)));
+                ascii_spans.push(Span::styled(
+                    format!("{}", *b as char),
+                    Style::default().fg(Color::White),
+                ));
             } else {
-                ascii_spans.push(Span::raw("."));
+                ascii_spans.push(Span::styled(
+                    ".",
+                    Style::default().fg(Color::DarkGray), // Use a different color for non-printable chars
+                ));
             }
         }
 
@@ -362,16 +381,22 @@ fn ui(frame: &mut Frame, app: &mut App) {
     let mut full_content: Vec<Line> = Vec::new();
     for i in 0..hex_lines.len() {
         let mut combined_spans = hex_lines[i].spans.clone();
-        combined_spans.push(Span::raw(" | ")); // Separator
+        combined_spans.push(Span::styled(" | ", Style::default().fg(Color::DarkGray))); // Separator
         combined_spans.extend(ascii_lines[i].spans.clone());
         full_content.push(Line::from(combined_spans));
     }
 
-    let paragraph = Paragraph::new(full_content).block(Block::default().borders(Borders::ALL));
+    let paragraph = Paragraph::new(full_content).block(
+        Block::default()
+            .borders(Borders::ALL)
+            .border_style(Style::default().fg(Color::LightBlue)),
+    );
     frame.render_widget(paragraph, chunks[1]);
 
     // Footer Block (Status / Command Line)
-    let footer_block = Block::default().borders(Borders::ALL);
+    let footer_block = Block::default()
+        .borders(Borders::ALL)
+        .border_style(Style::default().fg(Color::LightBlue));
     let footer_content: Text = match app.mode {
         AppMode::Normal => {
             let msg = if app.last_status_time.elapsed() < Duration::from_secs(5)
@@ -380,20 +405,32 @@ fn ui(frame: &mut Frame, app: &mut App) {
                 app.status_message.clone()
             } else {
                 format!(
-                    "Offset: 0x{:X} | Press ':' for command, 'q' to quit, '?' for help",
+                    "Offset: 0x{:X} | Press ':' for command, 'q' to quit, 'h' for help", // Updated help text
                     app.current_offset
                 )
             };
             Text::from(Line::from(vec![Span::styled(
                 msg,
-                Style::default().add_modifier(Modifier::BOLD),
+                Style::default()
+                    .fg(Color::Green)
+                    .add_modifier(Modifier::BOLD),
             )]))
         }
         AppMode::Command => {
             Text::from(Line::from(vec![
-                Span::styled(":", Style::default().add_modifier(Modifier::BOLD)),
-                Span::raw(&app.input_buffer),
-                Span::styled("_", Style::default().add_modifier(Modifier::REVERSED)), // Cursor
+                Span::styled(
+                    ":",
+                    Style::default()
+                        .fg(Color::Yellow)
+                        .add_modifier(Modifier::BOLD),
+                ),
+                Span::styled(&app.input_buffer, Style::default().fg(Color::White)),
+                Span::styled(
+                    "_",
+                    Style::default()
+                        .add_modifier(Modifier::REVERSED)
+                        .fg(Color::Yellow),
+                ), // Cursor
             ]))
         }
     };
