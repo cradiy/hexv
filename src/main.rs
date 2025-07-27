@@ -171,12 +171,12 @@ impl App {
                         .saturating_sub(self.bytes_per_line as u64);
                     self.set_status_message(format!("Moved to 0x{:X}", self.current_offset));
                 }
-                KeyCode::PageDown | KeyCode::Char(' ') => {
+                KeyCode::PageDown | KeyCode::Char(' ') | KeyCode::Char('l') => {
                     self.current_offset =
                         self.current_offset.saturating_add(self.default_page_size);
                     self.set_status_message(format!("Moved to 0x{:X}", self.current_offset));
                 }
-                KeyCode::PageUp => {
+                KeyCode::PageUp | KeyCode::Char('h') => {
                     self.current_offset =
                         self.current_offset.saturating_sub(self.default_page_size);
                     self.set_status_message(format!("Moved to 0x{:X}", self.current_offset));

@@ -40,7 +40,7 @@ Once the hex viewer is running, you can use the following keyboard controls:
 
 #### Navigation
 - **Arrow Keys**: Navigate through the hex data
-- **Page Up/Page Down**: Move by pages
+- **Page Up/Page Down** / **h** / **l**: Move by pages (h for up, l for down)
 - **Home/End**: Go to beginning/end of file
 - **g**: Go to specific offset (enter command mode)
 
