@@ -71,30 +71,6 @@ hexv --start 1024 largefile.dat
 # View with 32 bytes per line starting from hex offset 0x200
 hexv --start 0x200 --bytes-per-line 32 firmware.bin
 ```
-
-## Dependencies
-
-- **clap**: Command-line argument parsing
-- **crossterm**: Cross-platform terminal manipulation
-- **ratatui**: Terminal UI framework
-- **tokio**: Asynchronous runtime
-
-## Building
-
-Requirements:
-- Rust 2024 edition
-- Cargo
-
-```bash
-# Debug build
-cargo build
-
-# Release build
-cargo build --release
-
-```
-
-
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
